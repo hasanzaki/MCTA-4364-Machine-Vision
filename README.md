@@ -48,9 +48,10 @@ The educational materials in this repository are strictly organized into separat
 
 ```text
 mcta-4364-machine-vision/
-├── README.md                    # Syllabus, course overview, and landing page
+├── README.md                    # Landing page and modernized syllabus
 ├── LICENSE                      # MIT licence for the teaching code
-├── lectures/                    # Slide decks and conceptual notes, one folder per week
+├── syllabus/                    # CLOs, assessment plan, weekly plan
+├── lectures/                    # Weekly slides + README notes, one folder per week
 │   ├── 01_introduction/
 │   ├── 02_representation/
 │   ├── 03_optics_calibration/
