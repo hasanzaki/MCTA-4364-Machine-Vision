@@ -1,0 +1,87 @@
+# Deep Learning and Model Weights
+*.pt
+*.pth
+*.onnx
+*.engine
+*.pb
+*.h5
+*.weights
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Video and Heavy Assets (Media)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Python environment and runtime
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.noise/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDEs and OS files
+.vscode/
+.idea/
+.project
+.pydevproject
+.settings/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Course Administration & Private Materials (CRITICAL PRIVACY)
+*.xlsx
+*.xls
+# Ignore student grade sheet CSV but allow syllabus or structural CSVs
+*classlist*
+*CAMRELEASE*
+*VALIDATION_SHEET*
+*Excuse Letter*
+*Decentralized exam*
+MCTA 4364-1*
+MCTA_4364_1*
+Weekly.xlsx
+
+# Large Datasets (kept locally, not pushed to GitHub)
+projects/datasets/
+resources/images/captured_screens/
+
+# Exams and Private Assessments (kept locally, never pushed)
+assessments/private/
+*.docx
+*.doc
+*.pdf
+# Re-enable specific public PDFs if necessary, but keep admin and assessment PDFs hidden
+!machineVision_courseOutline.pdf
+!projects/*.pdf
+!lectures/**/*.pdf
+
+# Large lecture media containing embedded video (kept local; distribute via LMS/Drive)
+lectures/01_introduction/01 - introduction.pptx
+lectures/01_introduction/01 - introduction.pdf
+lectures/09_object_detection_rcnn/Intro_ObjectDetection.pptx
+lectures/09_object_detection_rcnn/Object_detection_RCNN.pptx
+lectures/10_object_detection_yolo/Day 4 - Applications of Object Detection.pptx
+lectures/14_vision_language_models/Day 5 - Intro to LLM, Hugging Face and VLM.pptx

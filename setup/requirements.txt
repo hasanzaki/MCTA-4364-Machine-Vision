@@ -1,0 +1,32 @@
+# MCTE 4323 / MCTA 4364 Machine Vision - Python Requirements
+# Tested with Python 3.10 - 3.12
+
+# Core numerical and plotting stack
+numpy>=1.26
+matplotlib>=3.8
+scipy>=1.11
+
+# Classical computer vision
+opencv-python>=4.9
+scikit-image>=0.22
+Pillow>=10.0
+
+# Deep learning (CPU or CUDA depending on your machine)
+torch>=2.2
+torchvision>=0.17
+
+# Modern object detection, tracking and segmentation
+ultralytics>=8.3
+
+# 3D vision and point clouds
+open3d>=0.18
+
+# Vision-Language Models and Hugging Face ecosystem
+transformers>=4.44
+huggingface-hub>=0.24
+accelerate>=0.33
+
+# Notebook environment
+jupyterlab>=4.1
+ipykernel>=6.29
+ipywidgets>=8.1
