@@ -13,15 +13,15 @@ Each folder below matches a week of the course. Every notebook follows the **sam
 
 ## Open in Colab
 
-| Week | Topic | Notebook |
+| Week | Topic | Open in Colab |
 |---|---|---|
-| 01 | Image basics and setup | [Open in Colab](01_image_basics/01_image_basics.ipynb) |
-| 02 | Colour spaces and representation | [Open in Colab](02_color_spaces/02_color_spaces.ipynb) |
-| 03 | Optics and camera calibration | [Open in Colab](03_optics_calibration/03_optics_calibration.ipynb) |
-| 04 | Image structures and pyramids | [Open in Colab](04_image_structures/04_image_structures.ipynb) |
-| 05 | Preprocessing and geometric transforms | [Open in Colab](05_geometric_transforms/05_geometric_transforms.ipynb) |
-| 06 | Filtering and morphology | [Open in Colab](06_filtering_morphology/06_filtering_morphology.ipynb) |
-| 07 | Segmentation | [Open in Colab](07_segmentation/07_segmentation.ipynb) |
+| 01 | Image basics and setup | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/01_image_basics/01_image_basics.ipynb) |
+| 02 | Colour spaces and representation | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/02_color_spaces/02_color_spaces.ipynb) |
+| 03 | Optics and camera calibration | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/03_optics_calibration/03_optics_calibration.ipynb) |
+| 04 | Image structures and pyramids | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/04_image_structures/04_image_structures.ipynb) |
+| 05 | Preprocessing and geometric transforms | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/05_geometric_transforms/05_geometric_transforms.ipynb) |
+| 06 | Filtering and morphology | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/06_filtering_morphology/06_filtering_morphology.ipynb) |
+| 07 | Segmentation | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/07_segmentation/07_segmentation.ipynb) |
 | 08 | Keypoint features and matching | `08_keypoint_features/` (coming soon) |
 | 09 | Object detection with R-CNN | `09_object_detection_rcnn/` (coming soon) |
 | 10 | Object detection with YOLO | `10_object_detection_yolo/` (coming soon) |
