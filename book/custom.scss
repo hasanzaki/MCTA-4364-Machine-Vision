@@ -1,4 +1,4 @@
-/* Custom styles for the Machine Vision textbook */
+/*-- scss:rules --*/
 
 .book-title {
   font-weight: 700;
@@ -13,8 +13,9 @@ pre code {
   font-size: 0.9em;
 }
 
-/* Figure captions in a muted tone */
-figcaption, .figure-caption {
+/* Muted figure captions */
+figcaption,
+.figure-caption {
   color: #555;
   font-size: 0.9em;
 }

@@ -34,6 +34,21 @@ See `PROPOSAL.md` for the full plan and table of contents.
 
 The rendered site is written to `book/_book/` (ignored by Git).
 
+## Troubleshooting
+
+**Quarto launches the wrong kernel (Windows).** If you have several Jupyter kernels installed (e.g. old conda environments), Quarto may fail with `[WinError 2] The system cannot find the file specified` because it selected a kernel whose interpreter no longer exists. Fix by ensuring a valid kernel is found first:
+
+```powershell
+# list kernels and find broken ones
+jupyter kernelspec list
+# create a valid kernel that sorts first (workaround)
+python -m ipykernel install --user --name 000-python --display-name "Python (book)"
+```
+
+Then re-render with `quarto render`.
+
+**PDF output fails.** The PDF format needs a LaTeX installation (TinyTeX or MiKTeX). HTML and EPUB do not. Install TinyTeX with `quarto install tinytex` if you need PDF.
+
 ## Conventions
 
 - Every figure must be **generated in code** (reproducible) or openly licensed with attribution.
