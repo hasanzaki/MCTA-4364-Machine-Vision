@@ -1,0 +1,47 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Machine Vision: From Pixels to Foundation Models"
+  subtitle: "A Modern Engineering Approach"
+  author: "Dr. Hasan Zaki"
+  date: "2026"
+  chapters:
+    - index.qmd
+    - chapters/07-segmentation.qmd
+    # Add further chapters here as they are drafted, e.g.
+    # - chapters/01-what-machine-vision-is.qmd
+    # - chapters/02-representation-and-colour.qmd
+  page-footer:
+    left: "© 2026 Hasan Zaki"
+    right: "Licensed CC BY-NC-SA 4.0"
+  repo-url: https://github.com/hasanzaki/MCTA-4364-Machine-Vision
+  repo-actions: [edit, issue]
+  search: true
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: [cosmo, custom.scss]
+    code-fold: true
+    code-summary: "Show the code"
+    toc: true
+    number-sections: true
+    fig-cap-location: bottom
+  pdf:
+    documentclass: report
+    colorlinks: true
+    geometry:
+      - margin=1in
+    number-sections: true
+  epub:
+    toc: true
+
+execute:
+  echo: true
+  warning: false
+  freeze: auto
+
+jupyter: python3

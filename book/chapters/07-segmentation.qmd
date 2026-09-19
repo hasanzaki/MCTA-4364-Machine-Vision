@@ -1,0 +1,289 @@
+# Segmentation {#sec-segmentation}
+
+Segmentation partitions an image into regions that are meaningful for a task. It is the bridge between low-level pixels and high-level understanding: before a system can recognise, measure or count an object, it must decide which pixels belong to it. This chapter develops the classical segmentation toolbox and ends by previewing the learned methods that Chapter 11 covers in depth.
+
+## Learning outcomes
+
+After this chapter you will be able to:
+
+1. Segment images using **global, Otsu and adaptive thresholding**.
+2. Detect boundaries with **edge-based segmentation** and the **Hough transform**.
+3. Separate **regions** using connected components and the **watershed** algorithm.
+4. Describe **texture**-based segmentation in outline.
+5. Evaluate segmentation with **IoU, Dice and mIoU**.
+6. Explain when to prefer a **learned** segmentation method.
+
+| Outcome | CLO1 | CLO2 | CLO3 | CLO4 |
+|---|:---:|:---:|:---:|:---:|
+| 1–2 | • | • | | |
+| 3 | • | • | • | |
+| 4–5 | • | • | | • |
+| 6 | • | | | • |
+
+::: {.callout-note}
+## Companion lab
+Open **Week 07 — Segmentation** in Colab:
+<https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/07_segmentation/07_segmentation.ipynb>
+:::
+
+## 7.1 The segmentation problem
+
+Formally, segmentation assigns each pixel a label. For two classes this produces a **binary mask**; for many classes it produces a label image. Two classes are always in tension: the *foreground* we want and the *background* we discard. What counts as "meaningful" is defined by the task, so segmentation is never purely objective.
+
+We use one synthetic scene throughout the chapter so results are reproducible and easy to analyse. The objects are **dark** (like printed marks, holes, or dark parts) on a background that is **unevenly lit** — the situation that most often breaks simple thresholding.
+
+```{python}
+#| label: fig-scene
+#| fig-cap: "A synthetic scene with three dark objects on an unevenly lit background, plus sensor noise. The ground-truth mask is used later to compute IoU."
+#| code-fold: false
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+def make_scene(h=300, w=400, seed=0):
+    rng = np.random.RandomState(seed)
+    shapes = np.zeros((h, w), np.uint8)
+    cv2.circle(shapes, (110, 110), 55, 255, -1)               # object 1
+    cv2.rectangle(shapes, (220, 60), (340, 160), 255, -1)     # object 2
+    cv2.fillPoly(shapes, [np.array([[120, 250], [210, 190], [280, 250]])], 255)  # object 3
+    gt = (shapes > 0).astype(np.uint8)
+
+    yy, xx = np.mgrid[0:h, 0:w]
+    background = (235 - (xx / w) * 150).astype(np.float32)     # bright left -> dim right
+    scene = background.copy()
+    scene[gt > 0] = 40                                          # dark objects
+    scene += rng.normal(0, 6, scene.shape)                      # sensor noise
+    return np.clip(scene, 0, 255).astype(np.uint8), gt
+
+gray, gt = make_scene()
+plt.figure(figsize=(9, 3.4))
+plt.subplot(1, 2, 1); plt.imshow(gray, cmap="gray"); plt.title("Input image"); plt.axis("off")
+plt.subplot(1, 2, 2); plt.imshow(gt, cmap="gray"); plt.title("Ground-truth mask"); plt.axis("off")
+plt.tight_layout()
+```
+
+## 7.2 Thresholding
+
+The simplest segmenter chooses a threshold $T$ and labels each pixel by comparing its intensity. For dark objects on a bright background we mark a pixel foreground when it is **below** $T$:
+
+$$
+g(x,y) =
+\begin{cases}
+1, & f(x,y) < T \\
+0, & \text{otherwise.}
+\end{cases}
+$$
+
+### Global thresholding
+A single fixed $T$ works only when illumination is uniform.
+
+### Otsu's method
+Otsu chooses the threshold that maximises the **between-class variance** $\sigma_b^2(T)$, equivalently minimising the within-class variance:
+
+$$
+\sigma_b^2(T) = \omega_0(T)\,\omega_1(T)\,\big[\mu_0(T) - \mu_1(T)\big]^2,
+$$
+
+where $\omega_0, \omega_1$ are the class probabilities and $\mu_0, \mu_1$ the class means at threshold $T$ [@otsu1979]. It assumes a roughly **bimodal** histogram.
+
+### Adaptive thresholding
+Adaptive methods compute a local threshold in each neighbourhood, which handles uneven illumination.
+
+```{python}
+#| label: fig-thresholding
+#| fig-cap: "Global (fixed), Otsu and adaptive thresholding on the same scene. The illumination gradient defeats a single threshold; adaptive thresholding tracks the local background."
+_, th_global = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+otsu_val, th_otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+th_adapt = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                 cv2.THRESH_BINARY_INV, 75, 10)
+
+print(f"Otsu threshold = {otsu_val:.0f}")
+plt.figure(figsize=(11, 3.4))
+for i, (im, t) in enumerate([(th_global, "Global (T=127)"), (th_otsu, f"Otsu (T={otsu_val:.0f})"), (th_adapt, "Adaptive (75, C=10)")]):
+    plt.subplot(1, 3, i + 1); plt.imshow(im, cmap="gray"); plt.title(t); plt.axis("off")
+plt.tight_layout()
+```
+
+> **Observation.** The dim right-hand background falls below the global threshold and is wrongly labelled foreground. Otsu reduces but does not remove this error, because a *single* threshold cannot follow the illumination gradient. Adaptive thresholding tracks the local background and cleans up the right side; its cost is sensitivity to the window size and to strongly textured regions.
+
+## 7.3 Edge-based segmentation
+
+Edges mark intensity discontinuities and therefore region boundaries. The **Canny** detector [@canny1986] is the standard because it combines four ideas: Gaussian smoothing, gradient magnitude, non-maximum suppression, and **hysteresis** thresholding with a low and a high threshold.
+
+```{python}
+#| label: fig-canny
+#| fig-cap: "Canny edge detection with increasing thresholds. Low thresholds admit weak edges and noise; high thresholds keep only strong, reliable edges."
+edges_low = cv2.Canny(gray, 30, 90)
+edges_mid = cv2.Canny(gray, 80, 170)
+edges_high = cv2.Canny(gray, 150, 250)
+plt.figure(figsize=(11, 3.4))
+for i, (im, t) in enumerate([(edges_low, "30 / 90"), (edges_mid, "80 / 170"), (edges_high, "150 / 250")]):
+    plt.subplot(1, 3, i + 1); plt.imshow(im, cmap="gray"); plt.title(t); plt.axis("off")
+plt.tight_layout()
+```
+
+## 7.4 The Hough transform
+
+The Hough transform detects parametric shapes by **voting**. A line is written as
+
+$$
+\rho = x\cos\theta + y\sin\theta,
+$$
+
+so every edge pixel votes for a sinusoid in the $(\rho, \theta)$ parameter space; peaks correspond to lines. Circular holes are detected analogously in a three-parameter $(a, b, r)$ space.
+
+```{python}
+#| label: fig-hough
+#| fig-cap: "Hough transform finding straight edges (red) and circular holes (green) in a synthetic part."
+canvas = np.zeros((300, 400), np.uint8)
+cv2.line(canvas, (30, 40), (360, 110), 255, 3)
+cv2.line(canvas, (40, 260), (370, 180), 255, 3)
+cv2.circle(canvas, (140, 170), 45, 255, 3)
+cv2.circle(canvas, (280, 150), 28, 255, 3)
+
+edges = cv2.Canny(canvas, 50, 150)
+lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=70, minLineLength=60, maxLineGap=10)
+circles = cv2.HoughCircles(canvas, cv2.HOUGH_GRADIENT, dp=1, minDist=40,
+                           param1=100, param2=30, minRadius=15, maxRadius=80)
+
+vis = cv2.cvtColor(canvas, cv2.COLOR_GRAY2BGR)
+if lines is not None:
+    for l in np.array(lines).reshape(-1, 4):          # version-robust unpacking
+        x1, y1, x2, y2 = map(int, l)
+        cv2.line(vis, (x1, y1), (x2, y2), (0, 0, 255), 2)
+if circles is not None:
+    for cx, cy, r in np.round(circles[0]).astype(int):
+        cv2.circle(vis, (cx, cy), r, (0, 255, 0), 2)
+
+plt.figure(figsize=(6, 4.5))
+plt.imshow(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)); plt.title("Hough lines and circles"); plt.axis("off")
+plt.tight_layout()
+```
+
+## 7.5 Region-based segmentation
+
+Region-based methods grow or group pixels that share properties. Two workhorses are:
+
+- **Connected components**, which label maximal connected groups of foreground pixels.
+- **Watershed**, which treats intensity as a topographic surface and floods it from markers, separating **touching** objects [@vincent1991].
+
+```{python}
+#| label: fig-watershed
+#| fig-cap: "Connected components (left) and watershed boundaries (right). Watershed uses markers from the distance transform to split touching objects."
+_, fg = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+fg = cv2.morphologyEx(fg, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+
+n, labels, stats, cent = cv2.connectedComponentsWithStats(fg)
+cc_vis = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+for i in range(1, n):
+    if stats[i, cv2.CC_STAT_AREA] < 200:
+        continue
+    x, y, w, h = stats[i, cv2.CC_STAT_LEFT], stats[i, cv2.CC_STAT_TOP], stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+    cv2.rectangle(cc_vis, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+dist = cv2.distanceTransform(fg, cv2.DIST_L2, 5)
+_, sure_fg = cv2.threshold(dist, 0.5 * dist.max(), 255, 0)
+sure_fg = np.uint8(sure_fg)
+sure_bg = cv2.dilate(fg, np.ones((3, 3), np.uint8), iterations=2)
+unknown = cv2.subtract(sure_bg, sure_fg)
+_, markers = cv2.connectedComponents(sure_fg)
+markers = markers + 1
+markers[unknown == 255] = 0
+markers = cv2.watershed(cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR), markers)
+ws_vis = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+ws_vis[markers == -1] = (0, 0, 255)
+
+plt.figure(figsize=(11, 3.6))
+plt.subplot(1, 2, 1); plt.imshow(cv2.cvtColor(cc_vis, cv2.COLOR_BGR2RGB)); plt.title(f"Connected components ({n-1} blobs)"); plt.axis("off")
+plt.subplot(1, 2, 2); plt.imshow(cv2.cvtColor(ws_vis, cv2.COLOR_BGR2RGB)); plt.title("Watershed boundaries"); plt.axis("off")
+plt.tight_layout()
+```
+
+## 7.6 Texture
+
+Texture describes the spatial arrangement of intensity, not its level. A simple descriptor is the **local standard deviation**: smooth regions have low values, textured regions high values. Richer descriptors include Gabor filter banks and the **grey-level co-occurrence matrix (GLCM)**, whose contrast, correlation and energy summarise a neighbourhood.
+
+```{python}
+#| label: fig-texture
+#| fig-cap: "Local standard deviation as a simple texture map. Flat surfaces are dark; edge-rich areas are bright."
+mean = cv2.blur(gray.astype(np.float32), (9, 9))
+sq_mean = cv2.blur((gray.astype(np.float32)) ** 2, (9, 9))
+texture = np.sqrt(np.clip(sq_mean - mean ** 2, 0, None))
+texture = cv2.normalize(texture, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+
+plt.figure(figsize=(6, 4.5))
+plt.imshow(texture, cmap="gray"); plt.title("Local standard deviation (texture)"); plt.axis("off")
+plt.tight_layout()
+```
+
+## 7.7 Evaluating segmentation
+
+Segmentation quality is measured against a reference mask. For a class $c$,
+
+$$
+\mathrm{IoU}_c = \frac{|P_c \cap G_c|}{|P_c \cup G_c|},
+\qquad
+\mathrm{Dice}_c = \frac{2|P_c \cap G_c|}{|P_c| + |G_c|},
+\qquad
+\mathrm{mIoU} = \frac{1}{C}\sum_{c=1}^{C} \mathrm{IoU}_c .
+$$
+
+Unlike pixel accuracy, **mIoU averages over classes**, so a large background cannot hide poor performance on small objects. The table below compares the thresholding methods on our scene.
+
+```{python}
+#| label: tbl-metrics
+#| tbl-cap: "Agreement with the ground-truth mask. Adaptive thresholding handles the illumination gradient far better than any single global threshold."
+def iou(pred, gt):
+    pred, gt = pred > 0, gt > 0
+    inter = np.logical_and(pred, gt).sum()
+    union = np.logical_or(pred, gt).sum()
+    return inter / union if union else 0.0
+
+def dice(pred, gt):
+    pred, gt = pred > 0, gt > 0
+    inter = np.logical_and(pred, gt).sum()
+    return 2 * inter / (pred.sum() + gt.sum()) if (pred.sum() + gt.sum()) else 0.0
+
+rows = [("Global (T=127)", th_global), (f"Otsu (T={otsu_val:.0f})", th_otsu), ("Adaptive (75, C=10)", th_adapt)]
+print(f"{'Method':<20}{'IoU':>8}{'Dice':>8}")
+for name, mask in rows:
+    print(f"{name:<20}{iou(mask, gt):>8.3f}{dice(mask, gt):>8.3f}")
+```
+
+## 7.8 From classical to learned segmentation
+
+Classical segmentation encodes *our* assumptions: a threshold assumes separable intensity classes, edges assume clear gradients, watershed assumes good markers. When those assumptions break — clutter, texture, occlusion, semantic ambiguity — learned models win.
+
+The **encoder–decoder** architectures of Chapter 11 (U-Net [@ronneberger2015], DeepLab, Mask R-CNN [@he2017]) learn the mapping from image to mask directly, and **promptable foundation models** such as SAM [@kirillov2023] generalise to unseen objects. The intuition developed here — thresholds, boundaries, regions, and evaluation with IoU — remains essential to understanding, debugging and trusting those models.
+
+## 7.9 Summary and key formulas
+
+- **Thresholding:** pixelwise comparison; Otsu maximises between-class variance; adaptive handles uneven illumination.
+- **Canny:** gradient magnitude + non-maximum suppression + hysteresis.
+- **Hough:** voting in parameter space; $\rho = x\cos\theta + y\sin\theta$ for lines.
+- **Regions:** connected components for disjoint blobs; watershed for touching objects.
+- **Texture:** spatial intensity patterns (local statistics, Gabor, GLCM).
+- **Metrics:** $\mathrm{IoU} = |P\cap G| / |P\cup G|$; $\mathrm{mIoU}$ averages over classes.
+
+## 7.10 Exercises
+
+**Conceptual.**
+1. Explain, using the input image, why a single global threshold cannot succeed on our scene.
+2. Give an inspection task where edges are a better cue than intensity thresholds.
+
+**Computational.**
+3. Derive the between-class variance $\sigma_b^2(T)$ for a two-class histogram with $N$ pixels, and show the $T$ that maximises it.
+4. For $P$ and $G$ with $|P\cap G|=5000$, $|P|=8000$, $|G|=6000$, compute IoU and Dice.
+
+**Programming.**
+5. Implement Otsu's threshold from scratch and verify it against `cv2.threshold(..., cv2.THRESH_OTSU)`.
+6. Sweep the adaptive window size and report how IoU changes; explain the trend you observe.
+7. Extend the watershed example to count the objects and compare with connected components.
+
+## 7.11 Further reading
+
+- Otsu, N. (1979). A threshold selection method from grey-level histograms. [@otsu1979]
+- Canny, J. (1986). A computational approach to edge detection. [@canny1986]
+- Vincent, L. & Soille, P. (1991). Watersheds in digital spaces. [@vincent1991]
+- OpenCV thresholding tutorial: <https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html>
+- scikit-image segmentation guide: <https://scikit-image.org/docs/stable/user_guide/tutorial_segmentation.html>

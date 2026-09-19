@@ -1,0 +1,37 @@
+# Preface {.unnumbered}
+
+This book is a modern, applied introduction to **machine vision** for undergraduate engineering students. It covers the complete pipeline — image formation, classical image processing, learning-based recognition, 3D vision, motion, and modern foundation models — through reproducible Python and Google Colab laboratories.
+
+## How this book is organized
+
+The book follows a 14-week course and is divided into four parts:
+
+- **Part I — Foundations:** what machine vision is, image representation, image formation and calibration, and multi-scale data structures.
+- **Part II — Classical Processing:** preprocessing, filtering and morphology, segmentation, and features/matching.
+- **Part III — Learning-Based Vision:** object detection (two-stage and one-stage) and deep segmentation.
+- **Part IV — 3D, Motion and Frontiers:** 3D vision, motion and tracking, and vision-language models.
+
+Each chapter contains learning outcomes, worked examples, a **linked Colab lab**, a common-misconceptions box, exercises, and further reading.
+
+## How to use this book
+
+::: {.callout-tip}
+## Students
+Read the chapter, then open the linked Colab notebook and complete the exercise and challenge. The `Q&A` sections are for self-testing.
+:::
+
+::: {.callout-note}
+## Instructors
+Each chapter maps to the course learning outcomes. A companion question bank and slide decks are maintained in the teaching repository.
+:::
+
+## Conventions
+
+- **Notation** is defined on first use and summarized in the appendix.
+- **Code** is Python (OpenCV, NumPy, Matplotlib, PyTorch, Ultralytics).
+- **Colour figures** use a colour-blind-safe palette.
+
+## Companion repository
+
+All code, notebooks, datasets and updates are available at:
+<https://github.com/hasanzaki/MCTA-4364-Machine-Vision>

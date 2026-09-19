@@ -79,6 +79,11 @@ assessments/private/
 !lectures/**/*.pdf
 !legacy/*.pdf
 
+# Book build outputs (Quarto)
+/book/_book/
+/book/.quarto/
+/book/.jupyter_cache/
+
 # Large lecture media containing embedded video (kept local; distribute via LMS/Drive)
 lectures/01_introduction/01 - introduction.pptx
 lectures/01_introduction/01 - introduction.pdf
