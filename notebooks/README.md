@@ -26,9 +26,9 @@ Each folder below matches a week of the course. Every notebook follows the **sam
 | 09 | Object detection with R-CNN | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/09_object_detection_rcnn/09_object_detection_rcnn.ipynb) |
 | 10 | Object detection with YOLO | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/10_object_detection_yolo/10_object_detection_yolo.ipynb) |
 | 11 | Deep segmentation (U-Net, Mask R-CNN, SAM) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/11_deep_segmentation/11_deep_segmentation.ipynb) |
-| 12 | 3D vision and point clouds | `12_3d_point_clouds/` (coming soon) |
-| 13 | Motion and object tracking | `13_motion_tracking/` (coming soon) |
-| 14 | Vision-Language Models | `14_vision_language_models/` (coming soon) |
+| 12 | 3D vision and point clouds | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/12_3d_point_clouds/12_3d_point_clouds.ipynb) |
+| 13 | Motion and object tracking | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/13_motion_tracking/13_motion_tracking.ipynb) |
+| 14 | Vision-Language Models | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/14_vision_language_models/14_vision_language_models.ipynb) |
 
 ## Running locally
 
