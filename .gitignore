@@ -83,6 +83,7 @@ assessments/private/
 /book/_book/
 /book/.quarto/
 /book/.jupyter_cache/
+/book/_freeze/
 
 # Large lecture media containing embedded video (kept local; distribute via LMS/Drive)
 lectures/01_introduction/01 - introduction.pptx
