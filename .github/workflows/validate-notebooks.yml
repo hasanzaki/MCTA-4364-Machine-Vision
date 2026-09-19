@@ -21,14 +21,16 @@ jobs:
         run: python .github/scripts/validate_notebooks.py
 
   execute:
-    name: Execute foundation notebooks
+    name: Execute all notebooks
     runs-on: ubuntu-latest
     needs: validate
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
       - name: Install system libraries for OpenCV
         run: |
           sudo apt-get update
@@ -37,25 +39,30 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install nbformat nbconvert ipykernel papermill
-          pip install numpy matplotlib opencv-python-headless scipy ipywidgets
+          pip install numpy matplotlib opencv-python-headless scipy ipywidgets scikit-image pillow
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install ultralytics transformers
           python -m ipykernel install --user --name python3
-      - name: Execute notebooks (repo root as cwd)
+      - name: Cache model weights
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/torch
+          key: model-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            model-cache-${{ runner.os }}-
+      - name: Execute every notebook (repo root as cwd)
         env:
           MPLBACKEND: Agg
         run: |
+          set -e
           mkdir -p /tmp/executed
-          for nb in \
-            notebooks/01_image_basics/01_image_basics.ipynb \
-            notebooks/02_color_spaces/02_color_spaces.ipynb \
-            notebooks/03_optics_calibration/03_optics_calibration.ipynb \
-            notebooks/04_image_structures/04_image_structures.ipynb \
-            notebooks/05_geometric_transforms/05_geometric_transforms.ipynb \
-            notebooks/06_filtering_morphology/06_filtering_morphology.ipynb \
-            notebooks/07_segmentation/07_segmentation.ipynb \
-            notebooks/08_keypoint_features/08_keypoint_features.ipynb \
-            notebooks/12_3d_point_clouds/12_3d_point_clouds.ipynb \
-            notebooks/13_motion_tracking/13_motion_tracking.ipynb ; do
+          notebooks=$(find notebooks -name "*.ipynb" | sort)
+          for nb in $notebooks; do
+            echo "================================================"
             echo "=== Executing $nb ==="
+            echo "================================================"
             papermill "$nb" "/tmp/executed/$(basename "$nb")" \
-              --cwd . --kernel python3 --execution-timeout 900
+              --cwd . --kernel python3 --execution-timeout 1200
           done

@@ -77,6 +77,7 @@ assessments/private/
 !machineVision_courseOutline.pdf
 !projects/*.pdf
 !lectures/**/*.pdf
+!legacy/*.pdf
 
 # Large lecture media containing embedded video (kept local; distribute via LMS/Drive)
 lectures/01_introduction/01 - introduction.pptx
