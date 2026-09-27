@@ -29,66 +29,53 @@ env/
 venv/
 .venv/
 ENV/
-pip-log.txt
-pip-delete-this-directory.txt
 .ipynb_checkpoints/
 .pytest_cache/
 .coverage
 htmlcov/
-.tox/
-.noise/
-.mypy_cache/
-.dmypy.json
-dmypy.json
 
 # IDEs and OS files
 .vscode/
 .idea/
-.project
-.pydevproject
-.settings/
 Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Course Administration & Private Materials (CRITICAL PRIVACY)
+# Documents and private administration (never published)
 *.xlsx
 *.xls
-# Ignore student grade sheet CSV but allow syllabus or structural CSVs
+*.docx
+*.doc
+*.pdf
 *classlist*
 *CAMRELEASE*
 *VALIDATION_SHEET*
 *Excuse Letter*
 *Decentralized exam*
-MCTA 4364-1*
-MCTA_4364_1*
-Weekly.xlsx
+MCTA 4364*
+MCTA_4364*
+Weekly*
 
-# Large Datasets (kept locally, not pushed to GitHub)
-projects/datasets/
-resources/images/captured_screens/
+# ---------------------------------------------------------------------------
+# Local-only teaching material (kept on disk, but NOT part of this repository).
+# The public repository contains only the student notebooks and their helpers.
+# ---------------------------------------------------------------------------
+book/
+assessments/
+projects/
+lectures/
+syllabus/
+legacy/
+setup/
+AGENTS.md
+Mini_project_titles.pdf
 
-# Exams and Private Assessments (kept locally, never pushed)
-assessments/private/
-*.docx
-*.doc
-*.pdf
-# Re-enable specific public PDFs if necessary, but keep admin and assessment PDFs hidden
-!machineVision_courseOutline.pdf
-!projects/*.pdf
-!lectures/**/*.pdf
-!legacy/*.pdf
+# Instructor reference scripts and exports inside notebooks/ (keep only .ipynb)
+notebooks/**/*.py
+notebooks/**/*.html
+notebooks/**/*.pdf
 
-# Book build outputs (Quarto)
-/book/_book/
-/book/.quarto/
-/book/.jupyter_cache/
-/book/_freeze/
-
-# Large lecture media containing embedded video (kept local; distribute via LMS/Drive)
-lectures/01_introduction/01 - introduction.pptx
-lectures/01_introduction/01 - introduction.pdf
-lectures/09_object_detection_rcnn/Intro_ObjectDetection.pptx
-lectures/09_object_detection_rcnn/Object_detection_RCNN.pptx
-lectures/10_object_detection_yolo/Day 4 - Applications of Object Detection.pptx
-lectures/14_vision_language_models/Day 5 - Intro to LLM, Hugging Face and VLM.pptx
+# Shared assets that are large, licensed, or not needed for the notebooks
+resources/images/
+resources/models/
+resources/videos/
