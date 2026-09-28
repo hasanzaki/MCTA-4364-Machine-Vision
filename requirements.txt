@@ -1,0 +1,11 @@
+# Course dependencies for running the notebooks locally.
+# Install PyTorch FIRST with CUDA support (see SETUP.md), then: pip install -r requirements.txt
+numpy
+scipy
+matplotlib
+opencv-python
+scikit-image
+pillow
+ipywidgets
+jupyterlab
+ipykernel

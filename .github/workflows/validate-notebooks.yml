@@ -54,6 +54,8 @@ jobs:
       - name: Execute every notebook (repo root as cwd)
         env:
           MPLBACKEND: Agg
+          # Tiny datasets and epochs so notebooks that train models finish on a CPU runner
+          MV_SMOKE: "1"
         run: |
           set -e
           mkdir -p /tmp/executed

@@ -79,3 +79,4 @@ notebooks/**/*.pdf
 resources/images/
 resources/models/
 resources/videos/
+data/

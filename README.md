@@ -25,11 +25,24 @@ Click any badge to run it instantly in **Google Colab** (free). You can also ope
 | 13 | Motion, optical flow and tracking | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/13_motion_tracking/13_motion_tracking.ipynb) |
 | 14 | Vision-language models | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/14_vision_language_models/14_vision_language_models.ipynb) |
 
+## New: Week 06 — Deep learning (pilot of the revised course)
+
+The course is being restructured into **two notebooks per week** (one per 80-minute session), with many more figures,
+interactive widgets, self-checked exercises, auto-marked quizzes and references. Week 06 is the first week in the new format:
+
+| Session | Topic | Open in Colab |
+|---|---|---|
+| 06A | Deep Learning I: from hand-crafted to learned features (neurons, gradient descent, CNNs, HOG vs CNN) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/W06_deep_learning/W06A_learned_features.ipynb) |
+| 06B | Deep Learning II: training well and transfer learning (augmentation, regularisation, fine-tuning, Grad-CAM, ViT) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hasanzaki/MCTA-4364-Machine-Vision/blob/main/notebooks/W06_deep_learning/W06B_training_transfer.ipynb) |
+
+Both notebooks run on a laptop with a **4 GB NVIDIA GPU** (or, more slowly, on a CPU) and adapt their settings to your hardware.
+See **[SETUP.md](SETUP.md)** for local installation.
+
 ## Running in other environments
 
 - **Kaggle** — create a new notebook, then *File → Import Notebook → URL* and paste the notebook's GitHub link (use the `blob` link above), or download the `.ipynb` and upload it.
 - **Jupyter / VS Code / any notebook tool** — clone this repository and open the notebook, or download the single `.ipynb` file you need.
-- **Locally** — the first cell of each notebook installs its own dependencies. You can also install everything at once:
+- **Locally** — follow [SETUP.md](SETUP.md) (install PyTorch with CUDA first). The first cell of each notebook installs any other missing packages. You can also install everything at once:
   ```bash
   pip install numpy matplotlib opencv-python scikit-image ipywidgets
   pip install torch torchvision ultralytics transformers   # weeks 09-14
@@ -53,4 +66,4 @@ Current, freely available resources used and recommended by these labs:
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Datasets, images and model weights are downloaded from their original sources; see [resources/ATTRIBUTION.md](resources/ATTRIBUTION.md) for credits and licences.
