@@ -272,3 +272,28 @@ def interact(func, **kwargs):
         else:
             defaults[name] = spec
     return func(**defaults)
+
+
+OPENCV_SAMPLES = "https://raw.githubusercontent.com/opencv/opencv/4.x/samples/data/"
+
+
+def opencv_sample(name):
+    """Local path of an OpenCV sample file (e.g. "left01.jpg", "vtest.avi"), downloaded once.
+
+    The OpenCV sample data is distributed with OpenCV under its open-source licence.
+    """
+    return download(OPENCV_SAMPLES + name, data_dir("opencv_samples") / name)
+
+
+def load_sample(name, gray=False):
+    """Load an OpenCV sample image as a BGR (or greyscale) NumPy array."""
+    img = cv2.imread(str(opencv_sample(name)), cv2.IMREAD_GRAYSCALE if gray else cv2.IMREAD_COLOR)
+    if img is None:
+        raise IOError(f"Could not read sample image {name}")
+    return img
+
+
+def show_rgb(*images, titles=None, figsize=None):
+    """Like show(), but for RGB images (e.g. from scikit-image or PIL)."""
+    show(*[cv2.cvtColor(np.ascontiguousarray(im), cv2.COLOR_RGB2BGR) if im.ndim == 3 else im for im in images],
+         titles=titles, figsize=figsize)

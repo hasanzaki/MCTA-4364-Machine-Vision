@@ -7,5 +7,6 @@ opencv-python
 scikit-image
 pillow
 ipywidgets
+plotly
 jupyterlab
 ipykernel

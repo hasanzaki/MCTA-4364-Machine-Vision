@@ -5,6 +5,7 @@ Nothing below is redistributed in this repository. Always check the licence befo
 
 | Asset | Used in | Source | Licence / terms |
 |---|---|---|---|
+| OpenCV sample data (`smarties.png`, `fruits.jpg`, `apple.jpg`, `orange.jpg`, chessboards, stereo pairs, videos, ...) | Weeks 0-5, 10, 12 | [opencv/opencv samples/data](https://github.com/opencv/opencv/tree/4.x/samples/data) | distributed with OpenCV (Apache-2.0) for education and testing |
 | Fashion-MNIST | W06A | [zalandoresearch/fashion-mnist](https://github.com/zalandoresearch/fashion-mnist) (Xiao et al., 2017) | MIT |
 | Imagenette (160 px) | W06B | [fastai/imagenette](https://github.com/fastai/imagenette) | Apache-2.0; images are a subset of ImageNet (non-commercial research and education) |
 | `skimage.data` sample images (camera, chelsea, coffee, astronaut, rocket, coins) | many weeks | [scikit-image data](https://scikit-image.org/docs/stable/api/skimage.data.html) | public domain / CC0 (astronaut: NASA) |
