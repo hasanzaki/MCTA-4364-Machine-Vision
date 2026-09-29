@@ -80,3 +80,7 @@ resources/images/
 resources/models/
 resources/videos/
 data/
+
+# Ultralytics run outputs and auto-downloaded datasets
+runs/
+datasets/

@@ -102,6 +102,8 @@ from pathlib import Path
 # CI sets MV_SMOKE=1: notebooks shrink datasets and epochs so every cell still
 # runs end to end on a CPU runner. Students never need to set it.
 SMOKE = os.environ.get("MV_SMOKE", "0") == "1"
+# MV_NO_WIDGETS=1 renders widgets statically without shrinking anything (for headless full-size test runs).
+STATIC = SMOKE or os.environ.get("MV_NO_WIDGETS", "0") == "1"
 
 
 def repo_root():
@@ -192,7 +194,7 @@ def quiz(questions, title="Quick check"):
     of the correct option, so the answer is not readable in the notebook) and
     `explain` (shown after the student checks their choice).
     """
-    if not HAS_WIDGETS or SMOKE:  # static text version (no front end in CI)
+    if not HAS_WIDGETS or STATIC:  # static text version (no front end in CI)
         print(title)
         for i, item in enumerate(questions, 1):
             print(f"\nQ{i}. {item['q']}")
@@ -261,7 +263,7 @@ def interact(func, **kwargs):
     without ipywidgets, `func` is called once with the default values, so the
     cell still produces a static figure.
     """
-    if HAS_WIDGETS and not SMOKE:
+    if HAS_WIDGETS and not STATIC:
         return widgets.interact(func, **kwargs)
     defaults = {}
     for name, spec in kwargs.items():

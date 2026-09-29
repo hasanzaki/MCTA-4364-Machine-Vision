@@ -133,3 +133,124 @@ def make_dataset(n_per_class=100, classes=CLASSES, seed=0, size=256, **kw):
             imgs.append(im); labels.append(ci); infos.append(inf)
     order = rng.permutation(len(labels))
     return np.stack(imgs)[order], np.array(labels)[order], [infos[i] for i in order]
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Multi-object conveyor scenes (detection, data-centric work, tracking)
+# ----------------------------------------------------------------------------------------------------------------
+SCENE_CLASSES = ["hex_nut", "washer", "bolt", "flange"]
+SCENE_MM_PER_PX = 0.5
+_TONE = {"hex_nut": 150, "washer": 190, "bolt": 95, "flange": 170}      # zinc, bright steel, black oxide, machined steel
+
+
+def _sprite_mask(cls, rng, px):
+    """Anti-aliasing is handled by the caller. Returns a uint8 mask (supersampled) centred in its own canvas."""
+    if cls == "hex_nut":
+        af = rng.uniform(16, 18) * px                    # across flats
+        n = int(af * 1.3) + 8
+        m = np.zeros((n, n), np.uint8)
+        r = af / np.sqrt(3)
+        pts = [(n / 2 + r * np.cos(a), n / 2 + r * np.sin(a)) for a in np.arange(6) * np.pi / 3]
+        cv2.fillPoly(m, [np.round(pts).astype(np.int32)], 255)
+        cv2.circle(m, (n // 2, n // 2), int(5 * px), 0, -1)
+    elif cls == "washer":
+        od = rng.uniform(22, 26) * px
+        n = int(od) + 8
+        m = np.zeros((n, n), np.uint8)
+        cv2.circle(m, (n // 2, n // 2), int(od / 2), 255, -1)
+        cv2.circle(m, (n // 2, n // 2), int(5.3 * px), 0, -1)
+    elif cls == "bolt":
+        length = rng.uniform(30, 45) * px
+        head, shank = 17 * px, 10 * px
+        n = int(length + head) + 8
+        m = np.zeros((n, n), np.uint8)
+        c = n / 2
+        top = c - (length + head * 0.8) / 2
+        cv2.rectangle(m, (int(c - head / 2), int(top)), (int(c + head / 2), int(top + head * 0.8)), 255, -1)
+        cv2.rectangle(m, (int(c - shank / 2), int(top + head * 0.8)), (int(c + shank / 2), int(top + head * 0.8 + length)), 255, -1)
+    else:  # flange (the part from make_part, at scene scale)
+        R = 20 * px
+        n = int(2 * R) + 8
+        m = np.zeros((n, n), np.uint8)
+        c = n // 2
+        cv2.circle(m, (c, c), int(R), 255, -1)
+        cv2.rectangle(m, (int(c - 1.5 * px), 0), (int(c + 1.5 * px), int(c - R + 2 * px)), 0, -1)
+        cv2.circle(m, (c, c), int(6 * px), 0, -1)
+        for k in range(4):
+            a = np.pi / 4 + k * np.pi / 2
+            cv2.circle(m, (int(c + 14 * px * np.sin(a)), int(c - 14 * px * np.cos(a))), int(2 * px), 0, -1)
+    return m
+
+
+def make_scene(rng=None, n_objects=None, size=(480, 640), classes=SCENE_CLASSES, class_probs=None, min_visible=0.5,
+               lighting=True, noise=3.0, exposure=1.0, return_masks=False):
+    """A conveyor scene with several parts. Returns (bgr image, boxes [N, 4] xyxy float, labels [N] int[, masks]).
+
+    Objects may overlap; later objects occlude earlier ones. Boxes are the bounding boxes of the *visible* pixels and
+    objects less than `min_visible` visible are dropped (as an annotator would).
+    """
+    rng = np.random.default_rng(rng)
+    H, W = size
+    n_objects = int(rng.integers(3, 9)) if n_objects is None else n_objects
+    px = _SS / SCENE_MM_PER_PX
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    belt = 50 + _brushed_texture(rng, H, W, 0, 5) + rng.normal(0, 2, (H, W))
+    img = belt.copy()
+    shade = np.ones((H, W), np.float32)
+    owner = np.full((H, W), -1, np.int32)
+    labels, full_area = [], []
+    for k in range(n_objects):
+        ci = int(rng.choice(len(classes), p=class_probs))
+        cls = classes[ci]
+        m = _sprite_mask(cls, rng, px)
+        rot = cv2.getRotationMatrix2D((m.shape[1] / 2, m.shape[0] / 2), rng.uniform(0, 360), 1.0)
+        m = cv2.warpAffine(m, rot, m.shape[::-1])
+        m = cv2.resize(m, (m.shape[1] // _SS, m.shape[0] // _SS), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
+        h, w = m.shape
+        x0, y0 = int(rng.integers(-w // 4, W - 3 * w // 4)), int(rng.integers(-h // 4, H - 3 * h // 4))
+        full = np.zeros((H, W), np.float32)
+        ys, xs = slice(max(y0, 0), min(y0 + h, H)), slice(max(x0, 0), min(x0 + w, W))
+        full[ys, xs] = m[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0]
+        if full.sum() < 20:
+            continue
+        # soft shadow on whatever is below
+        sh = cv2.GaussianBlur(np.roll(full, (4, 3), (0, 1)), (0, 0), 3)
+        shade *= 1 - 0.45 * sh
+        tex = _TONE[cls] + _brushed_texture(rng, H, W, rng.uniform(0, 180), 10)
+        if cls in ("washer", "flange"):
+            tex = tex + 10 * np.cos(np.hypot(xx - (x0 + w / 2), yy - (y0 + h / 2)) / 3.0) * 0.3
+        img = img * shade * (1 - full) + tex * full
+        shade = np.where(full > 0.5, 1.0, shade)
+        owner[full > 0.5] = len(labels)
+        labels.append(ci)
+        full_area.append((full > 0.5).sum())
+    boxes, keep, masks = [], [], []
+    for i in range(len(labels)):
+        vis = owner == i
+        if vis.sum() < min_visible * full_area[i] or vis.sum() < 15:
+            continue
+        ys_, xs_ = np.nonzero(vis)
+        boxes.append([xs_.min(), ys_.min(), xs_.max() + 1, ys_.max() + 1]); keep.append(i); masks.append(vis)
+    img = np.stack([img * 0.97, img, img * 1.03], -1)
+    if lighting:
+        g = rng.uniform(0, 2 * np.pi)
+        ramp = ((xx - W / 2) * np.cos(g) + (yy - H / 2) * np.sin(g)) / max(H, W)
+        img = img * (rng.uniform(0.9, 1.08) * (1 + 0.25 * ramp))[..., None]
+    img = np.clip(img * exposure + rng.normal(0, noise, img.shape), 0, 255).astype(np.uint8)
+    out = (img, np.array(boxes, np.float32).reshape(-1, 4), np.array([labels[i] for i in keep], np.int64))
+    return out + (np.array(masks, bool).reshape(-1, H, W),) if return_masks else out
+
+
+def draw_boxes(img, boxes, labels, scores=None, class_names=SCENE_CLASSES, colors=None, thickness=2):
+    """Draw xyxy boxes with class names (and scores) on a copy of a BGR image."""
+    colors = colors or [(66, 133, 244), (52, 168, 83), (234, 67, 53), (251, 188, 5), (171, 71, 188), (0, 172, 193)]
+    vis = img.copy()
+    for i, (b, l) in enumerate(zip(boxes, labels)):
+        c = colors[int(l) % len(colors)]
+        x0, y0, x1, y1 = [int(round(v)) for v in b]
+        cv2.rectangle(vis, (x0, y0), (x1, y1), c, thickness)
+        txt = class_names[int(l)] + ("" if scores is None else f" {scores[i]:.2f}")
+        (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+        cv2.rectangle(vis, (x0, max(y0 - th - 4, 0)), (x0 + tw + 2, max(y0, th + 4)), c, -1)
+        cv2.putText(vis, txt, (x0 + 1, max(y0 - 3, th + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
+    return vis
