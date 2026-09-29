@@ -254,3 +254,30 @@ def draw_boxes(img, boxes, labels, scores=None, class_names=SCENE_CLASSES, color
         cv2.rectangle(vis, (x0, max(y0 - th - 4, 0)), (x0 + tw + 2, max(y0, th + 4)), c, -1)
         cv2.putText(vis, txt, (x0 + 1, max(y0 - 3, th + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
     return vis
+
+
+def make_crops(n_per_class=100, seed=0, size=48, classes=SCENE_CLASSES, class_counts=None, canvas=128, **scene_kw):
+    """Greyscale crops of single parts (for fast classification experiments).
+
+    Returns (images uint8 [N, size, size], labels int [N]). `class_counts` overrides `n_per_class` per class, e.g. to create
+    an imbalanced dataset. Extra keyword arguments (exposure, noise, lighting) are passed to `make_scene`.
+    """
+    rng = np.random.default_rng(seed)
+    counts = class_counts if class_counts is not None else [n_per_class] * len(classes)
+    X, y = [], []
+    for ci, n in enumerate(counts):
+        onehot = np.eye(len(classes))[ci]
+        made = 0
+        while made < n:
+            img, b, _ = make_scene(rng.integers(1 << 31), n_objects=1, size=(canvas, canvas), classes=classes, class_probs=onehot,
+                                   min_visible=0.6, **scene_kw)
+            if len(b) == 0:
+                continue
+            x0, y0, x1, y1 = b[0]
+            cx, cy, r = (x0 + x1) / 2, (y0 + y1) / 2, max(x1 - x0, y1 - y0) * 0.6 + 2
+            g = cv2.copyMakeBorder(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), canvas, canvas, canvas, canvas, cv2.BORDER_REFLECT)
+            crop = g[int(cy - r) + canvas:int(cy + r) + canvas, int(cx - r) + canvas:int(cx + r) + canvas]
+            X.append(cv2.resize(crop, (size, size), interpolation=cv2.INTER_AREA)); y.append(ci)
+            made += 1
+    order = rng.permutation(len(y))
+    return np.stack(X)[order], np.array(y)[order]
