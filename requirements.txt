@@ -10,3 +10,7 @@ ipywidgets
 plotly
 jupyterlab
 ipykernel
+# Weeks 8-13: detection, deployment and foundation models
+ultralytics
+onnx
+onnxruntime

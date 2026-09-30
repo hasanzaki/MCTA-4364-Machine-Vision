@@ -143,6 +143,11 @@ SCENE_MM_PER_PX = 0.5
 _TONE = {"hex_nut": 150, "washer": 190, "bolt": 95, "flange": 170}      # zinc, bright steel, black oxide, machined steel
 
 
+def _shift(img, dx, dy):
+    """Translate without wrap-around (the uncovered border is filled with 0)."""
+    return cv2.warpAffine(img, np.float32([[1, 0, dx], [0, 1, dy]]), (img.shape[1], img.shape[0]))
+
+
 def _sprite_mask(cls, rng, px):
     """Anti-aliasing is handled by the caller. Returns a uint8 mask (supersampled) centred in its own canvas."""
     if cls == "hex_nut":
@@ -214,7 +219,7 @@ def make_scene(rng=None, n_objects=None, size=(480, 640), classes=SCENE_CLASSES,
         if full.sum() < 20:
             continue
         # soft shadow on whatever is below
-        sh = cv2.GaussianBlur(np.roll(full, (4, 3), (0, 1)), (0, 0), 3)
+        sh = cv2.GaussianBlur(_shift(full, 3, 4), (0, 0), 3)
         shade *= 1 - 0.45 * sh
         tex = _TONE[cls] + _brushed_texture(rng, H, W, rng.uniform(0, 180), 10)
         if cls in ("washer", "flange"):
@@ -281,3 +286,68 @@ def make_crops(n_per_class=100, seed=0, size=48, classes=SCENE_CLASSES, class_co
             made += 1
     order = rng.permutation(len(y))
     return np.stack(X)[order], np.array(y)[order]
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Conveyor video with ground truth (motion analysis and tracking)
+# ----------------------------------------------------------------------------------------------------------------
+def make_conveyor_video(n_frames=120, seed=0, size=(360, 640), speed=6.0, spawn_every=(8, 20), classes=SCENE_CLASSES,
+                        class_probs=None, noise=3.0, flicker=0.01, min_visible_px=40):
+    """Parts ride a conveyor from left to right at `speed` px/frame (with small individual jitter).
+
+    Returns (frames, gt) where frames is a list of BGR uint8 images and gt is a list (one per frame) of dicts with
+    keys ids [K], boxes [K, 4] (xyxy of the visible pixels), labels [K], fg (bool mask of all parts), and
+    velocity (the true belt speed in px/frame). Objects occlude each other in spawn order.
+    """
+    rng = np.random.default_rng(seed)
+    H, W = size
+    px = _SS / SCENE_MM_PER_PX
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    belt = 50 + _brushed_texture(rng, H, W, 0, 5) + rng.normal(0, 2, (H, W))
+    g = rng.uniform(0, 2 * np.pi)
+    illum = 1 + 0.2 * ((xx - W / 2) * np.cos(g) + (yy - H / 2) * np.sin(g)) / max(H, W)
+    objects, next_spawn, next_id = [], 0, 0
+    frames, gt = [], []
+    for t in range(n_frames):
+        if t >= next_spawn:
+            ci = int(rng.choice(len(classes), p=class_probs))
+            m = _sprite_mask(classes[ci], rng, px)
+            rot = cv2.getRotationMatrix2D((m.shape[1] / 2, m.shape[0] / 2), rng.uniform(0, 360), 1.0)
+            m = cv2.warpAffine(m, rot, m.shape[::-1])
+            m = cv2.resize(m, (m.shape[1] // _SS, m.shape[0] // _SS), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
+            h, w = m.shape
+            tex = _TONE[classes[ci]] + _brushed_texture(rng, h, w, rng.uniform(0, 180), 10)
+            objects.append(dict(id=next_id, cls=ci, mask=m, tex=tex, x=-float(w), y=float(rng.uniform(10, H - h - 10)),
+                                v=speed * rng.uniform(0.97, 1.03)))
+            next_id += 1
+            next_spawn = t + int(rng.integers(*spawn_every))
+        img = belt.copy()
+        shade = np.ones((H, W), np.float32)
+        owner = np.full((H, W), -1, np.int32)
+        layers = []
+        for k, o in enumerate(objects):
+            M = np.float32([[1, 0, o["x"]], [0, 1, o["y"]]])
+            a = cv2.warpAffine(o["mask"], M, (W, H))
+            tx = cv2.warpAffine(o["tex"].astype(np.float32), M, (W, H))
+            layers.append((a, tx))
+        for a, _ in layers:                                     # shadows first, so they fall on the belt and on lower parts
+            shade *= 1 - 0.45 * cv2.GaussianBlur(_shift(a, 3, 4), (0, 0), 3)
+        for k, (a, tx) in enumerate(layers):
+            img = img * (1 - a) + tx * a
+            owner[a > 0.5] = k
+        img = img * np.where(owner >= 0, 1.0, shade)
+        img = np.stack([img * 0.97, img, img * 1.03], -1) * (illum * rng.normal(1, flicker))[..., None]
+        frames.append(np.clip(img + rng.normal(0, noise, img.shape), 0, 255).astype(np.uint8))
+        ids, boxes, labels = [], [], []
+        for k, o in enumerate(objects):
+            ys, xs = np.nonzero(owner == k)
+            if len(xs) >= min_visible_px:
+                ids.append(o["id"]); labels.append(o["cls"])
+                boxes.append([xs.min(), ys.min(), xs.max() + 1, ys.max() + 1])
+        gt.append(dict(ids=np.array(ids, int), boxes=np.array(boxes, np.float32).reshape(-1, 4), labels=np.array(labels, int),
+                       fg=owner >= 0, velocity=speed))
+        for o in objects:                                       # move for the next frame
+            o["x"] += o["v"]
+            o["y"] += rng.normal(0, 0.3)
+        objects = [o for o in objects if o["x"] < W]
+    return frames, gt

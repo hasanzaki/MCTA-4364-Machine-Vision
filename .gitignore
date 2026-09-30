@@ -84,3 +84,7 @@ data/
 # Ultralytics run outputs and auto-downloaded datasets
 runs/
 datasets/
+
+# .NET build outputs
+bin/
+obj/
