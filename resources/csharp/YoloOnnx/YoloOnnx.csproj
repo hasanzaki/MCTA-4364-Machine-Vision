@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Week 9B C# corner: run the conveyor detector exported to ONNX from C#.
-       Build: dotnet build    Run: dotnet run -- path/to/best.onnx path/to/scene.jpg 0.25 -->
+  <!-- Week 9B C# corner: run the conveyor detector exported to ONNX from C#. See README.md for build and run commands. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
