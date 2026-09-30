@@ -22,3 +22,8 @@ Nothing below is redistributed in this repository. Always check the licence befo
 | MVTec AD (optional, not downloaded by the course) | W11B | [mvtec.com](https://www.mvtec.com/company/research/datasets/mvtec-ad) | CC BY-NC-SA 4.0; must not be redistributed |
 | Middlebury 2006 `aloe` stereo pair and ground truth (via OpenCV samples) | W12A, W12B | [vision.middlebury.edu/stereo](https://vision.middlebury.edu/stereo/data/) | free for research and education; cite Scharstein & Pal (2007) |
 | Depth Anything V2 Small weights | W12B | [depth-anything/Depth-Anything-V2-Small-hf](https://huggingface.co/depth-anything/Depth-Anything-V2-Small-hf) | Apache-2.0 (larger variants CC BY-NC 4.0) |
+| MobileCLIP-B (LT) weights (TorchScript published with Ultralytics YOLOE) | W13A, W13B | [apple/ml-mobileclip](https://github.com/apple/ml-mobileclip) | Apple model licence (research and education); image tower re-implemented in `vlmhelpers.py` |
+| YOLOE-11S-seg weights | W13A | [Ultralytics](https://docs.ultralytics.com/models/yoloe/) | AGPL-3.0 |
+| `bus.jpg`, `zidane.jpg` (shipped with the `ultralytics` package) | W13A | [ultralytics/assets](https://github.com/ultralytics/assets) | AGPL-3.0 |
+| SmolVLM-256M-Instruct (optional) | W13A | [HuggingFaceTB/SmolVLM-256M-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct) | Apache-2.0 |
+| OpenAI CLIP ViT-B/32 (optional) | W13A | [openai/clip-vit-base-patch32](https://huggingface.co/openai/clip-vit-base-patch32) | MIT |

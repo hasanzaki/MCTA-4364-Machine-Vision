@@ -40,7 +40,7 @@ jobs:
           pip install nbformat nbconvert ipykernel papermill
           pip install numpy matplotlib opencv-python-headless scipy ipywidgets scikit-image pillow
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install ultralytics transformers diffusers accelerate plotly lap onnx onnxruntime onnxslim
+          pip install ultralytics transformers diffusers accelerate plotly lap onnx onnxruntime onnxslim open_clip_torch
           python -m ipykernel install --user --name python3
       - name: Cache model weights
         uses: actions/cache@v4
