@@ -20,3 +20,5 @@ Nothing below is redistributed in this repository. Always check the licence befo
 | MobileSAM weights (via Ultralytics) | W11B | [ChaoningZhang/MobileSAM](https://github.com/ChaoningZhang/MobileSAM) | Apache-2.0 |
 | Mask R-CNN ResNet-50-FPN v2 COCO weights | W11A | [torchvision](https://docs.pytorch.org/vision/stable/models.html) | BSD-3-Clause |
 | MVTec AD (optional, not downloaded by the course) | W11B | [mvtec.com](https://www.mvtec.com/company/research/datasets/mvtec-ad) | CC BY-NC-SA 4.0; must not be redistributed |
+| Middlebury 2006 `aloe` stereo pair and ground truth (via OpenCV samples) | W12A, W12B | [vision.middlebury.edu/stereo](https://vision.middlebury.edu/stereo/data/) | free for research and education; cite Scharstein & Pal (2007) |
+| Depth Anything V2 Small weights | W12B | [depth-anything/Depth-Anything-V2-Small-hf](https://huggingface.co/depth-anything/Depth-Anything-V2-Small-hf) | Apache-2.0 (larger variants CC BY-NC 4.0) |

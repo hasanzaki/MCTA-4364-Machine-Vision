@@ -14,3 +14,4 @@ ipykernel
 ultralytics
 onnx
 onnxruntime
+transformers
