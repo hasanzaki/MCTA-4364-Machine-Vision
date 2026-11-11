@@ -250,8 +250,9 @@ cv2.destroyAllWindows()</code></pre></div>
       with the text <code>CROWDED</code> at the top of the frame (<code>cv2.rectangle</code> with thickness <code>-1</code>).</li>
     <li><strong>Snapshot.</strong> Press <strong>s</strong> to save the current frame as <code>snap.jpg</code>
       (<code>cv2.imwrite</code>).</li>
-    <li><strong>Challenge — same API, other tasks.</strong> Replace the model with <code>yolo26n-seg.pt</code> or
-      <code>yolo26n-pose.pt</code>. What do you find in <code>r.masks</code> and <code>r.keypoints</code>?</li>
+    <li><strong>Challenge — speed vs accuracy.</strong> Run Step 5 with <code>yolo26n.pt</code> and then with
+      <code>yolo26s.pt</code>. Write down the FPS and how stable the detections are. Which one would you use on a
+      Raspberry Pi, and why?</li>
   </ol>
   <p class="note">Before you leave: post a screenshot of your webcam counter (or exercise) on the class Padlet.</p>
   <a class="download" href="w07b_yolo_python.py" download>Download the full checkpoint file (.py)</a>
