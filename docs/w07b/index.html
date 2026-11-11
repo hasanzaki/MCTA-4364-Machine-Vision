@@ -123,7 +123,7 @@ from ultralytics import YOLO
 import cv2
 
 model = YOLO("yolo26n.pt")          # downloads the weights the first time
-results = model("https://ultralytics.com/images/bus.jpg")
+results = model.predict("https://ultralytics.com/images/bus.jpg")
 
 r = results[0]                      # one image -&gt; one Results object
 annotated = r.plot()                # numpy image (BGR) with boxes drawn
@@ -132,8 +132,8 @@ cv2.imshow("Step 1 - YOLO result", cv2.resize(annotated, None, fx=0.7, fy=0.7))
 cv2.waitKey(0)                      # wait until a key is pressed
 cv2.destroyAllWindows()</code></pre></div>
   <p class="note">CLI vs Python: <code>yolo predict model=yolo26n.pt source=bus.jpg</code> is the same as
-  <code>model("bus.jpg")</code>. The difference: in Python the result comes back as an object you can use.
-  <code>model(...)</code> always returns a <strong>list</strong>, one item per image.
+  <code>model.predict("bus.jpg")</code>. The difference: in Python the result comes back as an object you can use.
+  <code>model.predict(...)</code> always returns a <strong>list</strong>, one item per image.
   The image is shrunk to 70% with <code>cv2.resize</code> so it fits on a laptop screen.</p>
 </section>
 
@@ -168,7 +168,7 @@ results = model.predict("https://ultralytics.com/images/bus.jpg",
 print("Persons found:", len(results[0].boxes))
 
 # (b) Filter yourself, then count every class
-results = model("https://ultralytics.com/images/bus.jpg", verbose=False)
+results = model.predict("https://ultralytics.com/images/bus.jpg", verbose=False)
 r = results[0]
 names = [r.names[int(c)] for c, s in zip(r.boxes.cls, r.boxes.conf) if s &gt;= 0.5]
 print(Counter(names))</code></pre></div>
@@ -218,7 +218,7 @@ while cap.isOpened():
     if not ok:
         break
 
-    r = model(frame, conf=0.5, verbose=False)[0]
+    r = model.predict(frame, conf=0.5, verbose=False)[0]
     frame = r.plot()
 
     persons = sum(1 for c in r.boxes.cls if r.names[int(c)] == "person")

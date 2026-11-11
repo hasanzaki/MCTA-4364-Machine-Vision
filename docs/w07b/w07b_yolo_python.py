@@ -7,7 +7,7 @@ from ultralytics import YOLO
 import cv2
 
 model = YOLO("yolo26n.pt")          # downloads the weights the first time
-results = model("https://ultralytics.com/images/bus.jpg")
+results = model.predict("https://ultralytics.com/images/bus.jpg")
 
 r = results[0]                      # one image -> one Results object
 annotated = r.plot()                # numpy image (BGR) with boxes drawn
@@ -37,7 +37,7 @@ results = model.predict("https://ultralytics.com/images/bus.jpg",
 print("Persons found:", len(results[0].boxes))
 
 # (b) Filter yourself, then count every class
-results = model("https://ultralytics.com/images/bus.jpg", verbose=False)
+results = model.predict("https://ultralytics.com/images/bus.jpg", verbose=False)
 r = results[0]
 names = [r.names[int(c)] for c, s in zip(r.boxes.cls, r.boxes.conf) if s >= 0.5]
 print(Counter(names))
@@ -76,7 +76,7 @@ while cap.isOpened():
     if not ok:
         break
 
-    r = model(frame, conf=0.5, verbose=False)[0]
+    r = model.predict(frame, conf=0.5, verbose=False)[0]
     frame = r.plot()
 
     persons = sum(1 for c in r.boxes.cls if r.names[int(c)] == "person")
