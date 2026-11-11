@@ -82,7 +82,7 @@
   <div class="course">MCTA 4364 Machine Vision · Week 7B</div>
   <h1>YOLO with the Python API</h1>
   <p class="lead">Last session we ran YOLO from the command line. Today we drive it from Python:
-  predict, read the results, filter, count, draw our own boxes, and run it live on a webcam.
+  predict, read the results, draw our own boxes and count, and run it live on a webcam.
   Copy each block, paste it at the bottom of your file, and run it.</p>
 </header>
 
@@ -90,9 +90,8 @@
   <a href="#setup">0 · Setup</a>
   <a href="#s1">1 · Predict</a>
   <a href="#s2">2 · Results</a>
-  <a href="#s3">3 · Filter &amp; count</a>
-  <a href="#s4">4 · Draw</a>
-  <a href="#s5">5 · Webcam</a>
+  <a href="#s3">3 · Draw</a>
+  <a href="#s4">4 · Webcam</a>
   <a href="#ex">Exercises</a>
 </nav>
 
@@ -158,59 +157,47 @@ for box in r.boxes:
 
 <section class="step" id="s3">
   <span class="num">Step 3</span>
-  <h2>Filter and count</h2>
-  <div class="codewrap"><pre><code class="language-python"># ===== Step 3 — Filter and count =====
-from collections import Counter
+  <h2>Draw your own boxes with OpenCV</h2>
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 3 — Draw your own boxes with OpenCV =====
+def draw_boxes(img, r, min_conf=0.5):
+    """Draw the YOLO boxes on img ourselves. Returns the number of persons."""
+    count = 0
+    for box in r.boxes:
+        conf = float(box.conf)
+        if conf &lt; min_conf:                 # skip weak detections
+            continue
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+        name = r.names[int(box.cls)]
+        if name == "person":
+            count += 1
+        color = (0, 255, 0) if name == "person" else (255, 0, 0)
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+        cv2.putText(img, f"{name} {conf:.2f}", (x1, y1 - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    return count
 
-# (a) Let YOLO filter for you: only persons (class 0), confidence &gt;= 0.5
-results = model.predict("https://ultralytics.com/images/bus.jpg",
-                        conf=0.5, classes=[0], verbose=False)
-print("Persons found:", len(results[0].boxes))
+img = r.orig_img.copy()                     # original image (BGR), no boxes yet
+persons = draw_boxes(img, r)
+cv2.putText(img, f"Persons: {persons}", (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
-# (b) Filter yourself, then count every class
-results = model.predict("https://ultralytics.com/images/bus.jpg", verbose=False)
-r = results[0]
-names = [r.names[int(c)] for c, s in zip(r.boxes.cls, r.boxes.conf) if s &gt;= 0.5]
-print(Counter(names))</code></pre></div>
-  <p class="note">Change <code>conf=0.5</code> to <code>0.8</code> and run again. How many persons now? Why?</p>
+cv2.imshow("Step 3 - My own boxes", cv2.resize(img, None, fx=0.7, fy=0.7))
+cv2.waitKey(0)
+cv2.destroyAllWindows()</code></pre></div>
+  <p class="note">We write the drawing as a <strong>function</strong> so we can reuse it in Step 4 for every webcam frame.
+  It also filters (skips boxes below <code>min_conf</code>) and counts persons. Colours are <strong>BGR</strong>:
+  <code>(0, 255, 0)</code> is green, <code>(255, 0, 0)</code> is blue, <code>(0, 0, 255)</code> is red.</p>
+  <p class="note">Try <code>draw_boxes(img, r, min_conf=0.8)</code>. How many persons now? Why?
+  (YOLO can also filter for you: <code>model.predict(..., conf=0.5, classes=[0])</code>.)</p>
 </section>
 
 <section class="step" id="s4">
   <span class="num">Step 4</span>
-  <h2>Draw your own boxes with OpenCV</h2>
-  <div class="codewrap"><pre><code class="language-python"># ===== Step 4 — Draw your own boxes with OpenCV =====
-img = r.orig_img.copy()             # original image (BGR), no boxes yet
-count = 0
-
-for box in r.boxes:
-    if float(box.conf) &lt; 0.5:
-        continue
-    x1, y1, x2, y2 = map(int, box.xyxy[0])
-    name = r.names[int(box.cls)]
-    if name == "person":
-        count += 1
-    color = (0, 255, 0) if name == "person" else (255, 0, 0)
-    cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
-    cv2.putText(img, f"{name} {float(box.conf):.2f}", (x1, y1 - 8),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-
-cv2.putText(img, f"Persons: {count}", (20, 50),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
-
-cv2.imshow("Step 4 - My own boxes", cv2.resize(img, None, fx=0.7, fy=0.7))
-cv2.waitKey(0)
-cv2.destroyAllWindows()</code></pre></div>
-  <p class="note">Same OpenCV drawing functions as in the earlier weeks. Colours are <strong>BGR</strong>:
-  <code>(0, 255, 0)</code> is green, <code>(255, 0, 0)</code> is blue, <code>(0, 0, 255)</code> is red.</p>
-</section>
-
-<section class="step" id="s5">
-  <span class="num">Step 5</span>
   <h2>Webcam: live person counter</h2>
-  <div class="codewrap"><pre><code class="language-python"># ===== Step 5 — Webcam: live person counter (press q to quit) =====
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 4 — Webcam: live person counter (press q to quit) =====
 import time
 
-cap = cv2.VideoCapture(0)           # 0 = laptop webcam; or a video path, e.g. "video.mp4"
+cap = cv2.VideoCapture(0)                   # 0 = laptop webcam; or a video path, e.g. "video.mp4"
 prev = time.time()
 
 while cap.isOpened():
@@ -218,25 +205,25 @@ while cap.isOpened():
     if not ok:
         break
 
-    r = model.predict(frame, conf=0.5, verbose=False)[0]
-    frame = r.plot()
+    r = model.predict(frame, verbose=False)[0]
+    persons = draw_boxes(frame, r)          # same function as Step 3
 
-    persons = sum(1 for c in r.boxes.cls if r.names[int(c)] == "person")
     now = time.time()
     fps = 1 / (now - prev)
     prev = now
 
     cv2.putText(frame, f"Persons: {persons}  FPS: {fps:.1f}", (20, 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    cv2.imshow("Step 5 - YOLO webcam", frame)
+    cv2.imshow("Step 4 - YOLO webcam", frame)
 
     if cv2.waitKey(1) &amp; 0xFF == ord("q"):
         break
 
 cap.release()
 cv2.destroyAllWindows()</code></pre></div>
-  <p class="note">Click on the video window, then press <strong>q</strong> to stop.</p>
-  <p class="note warn">Tired of pressing keys for Steps 1 and 4 every run? Put <code>#</code> in front of their
+  <p class="note">Same idea as Step 3, but in a loop: read a frame → predict → <code>draw_boxes</code> → show.
+  Click on the video window, then press <strong>q</strong> to stop.</p>
+  <p class="note warn">Tired of pressing keys for Steps 1 and 3 every run? Put <code>#</code> in front of their
   <code>cv2.imshow</code> / <code>cv2.waitKey</code> lines. No webcam? Put a video file path instead of <code>0</code>.</p>
 </section>
 
@@ -244,13 +231,13 @@ cv2.destroyAllWindows()</code></pre></div>
   <span class="num">Exercises</span>
   <h2>Your turn (no copy-paste)</h2>
   <ol>
-    <li><strong>Phone detector.</strong> Change Step 5 so it counts <code>cell phone</code> instead of persons.
-      Hint: look for the class number in <code>r.names</code>.</li>
+    <li><strong>Phone detector.</strong> Change <code>draw_boxes</code> so it counts <code>cell phone</code> instead of persons.
+      Hint: check the exact name in <code>r.names</code>.</li>
     <li><strong>Crowd alarm.</strong> If more than 2 persons are in front of the webcam, draw a red banner
       with the text <code>CROWDED</code> at the top of the frame (<code>cv2.rectangle</code> with thickness <code>-1</code>).</li>
     <li><strong>Snapshot.</strong> Press <strong>s</strong> to save the current frame as <code>snap.jpg</code>
       (<code>cv2.imwrite</code>).</li>
-    <li><strong>Challenge — speed vs accuracy.</strong> Run Step 5 with <code>yolo26n.pt</code> and then with
+    <li><strong>Challenge — speed vs accuracy.</strong> Run Step 4 with <code>yolo26n.pt</code> and then with
       <code>yolo26s.pt</code>. Write down the FPS and how stable the detections are. Which one would you use on a
       Raspberry Pi, and why?</li>
   </ol>

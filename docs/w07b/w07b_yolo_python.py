@@ -1,5 +1,5 @@
 # MCTA 4364 Machine Vision — Week 7B: YOLO with the Python API
-# Full checkpoint file (Steps 1–5). Run with the ▶ Run Python File button in VS Code.
+# Full checkpoint file (Steps 1–4). Run with the ▶ Run Python File button in VS Code.
 # When an image window opens, click on it and press any key to continue.
 
 # ===== Step 1 — Load a model and predict on one image =====
@@ -28,47 +28,37 @@ for box in r.boxes:
     x1, y1, x2, y2 = box.xyxy[0].tolist()
     print(f"{name:10s} conf={conf:.2f}  box=({x1:.0f}, {y1:.0f}, {x2:.0f}, {y2:.0f})")
 
-# ===== Step 3 — Filter and count =====
-from collections import Counter
+# ===== Step 3 — Draw your own boxes with OpenCV =====
+def draw_boxes(img, r, min_conf=0.5):
+    """Draw the YOLO boxes on img ourselves. Returns the number of persons."""
+    count = 0
+    for box in r.boxes:
+        conf = float(box.conf)
+        if conf < min_conf:                 # skip weak detections
+            continue
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+        name = r.names[int(box.cls)]
+        if name == "person":
+            count += 1
+        color = (0, 255, 0) if name == "person" else (255, 0, 0)
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+        cv2.putText(img, f"{name} {conf:.2f}", (x1, y1 - 8),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    return count
 
-# (a) Let YOLO filter for you: only persons (class 0), confidence >= 0.5
-results = model.predict("https://ultralytics.com/images/bus.jpg",
-                        conf=0.5, classes=[0], verbose=False)
-print("Persons found:", len(results[0].boxes))
-
-# (b) Filter yourself, then count every class
-results = model.predict("https://ultralytics.com/images/bus.jpg", verbose=False)
-r = results[0]
-names = [r.names[int(c)] for c, s in zip(r.boxes.cls, r.boxes.conf) if s >= 0.5]
-print(Counter(names))
-
-# ===== Step 4 — Draw your own boxes with OpenCV =====
-img = r.orig_img.copy()             # original image (BGR), no boxes yet
-count = 0
-
-for box in r.boxes:
-    if float(box.conf) < 0.5:
-        continue
-    x1, y1, x2, y2 = map(int, box.xyxy[0])
-    name = r.names[int(box.cls)]
-    if name == "person":
-        count += 1
-    color = (0, 255, 0) if name == "person" else (255, 0, 0)
-    cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
-    cv2.putText(img, f"{name} {float(box.conf):.2f}", (x1, y1 - 8),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-
-cv2.putText(img, f"Persons: {count}", (20, 50),
+img = r.orig_img.copy()                     # original image (BGR), no boxes yet
+persons = draw_boxes(img, r)
+cv2.putText(img, f"Persons: {persons}", (20, 50),
             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
-cv2.imshow("Step 4 - My own boxes", cv2.resize(img, None, fx=0.7, fy=0.7))
+cv2.imshow("Step 3 - My own boxes", cv2.resize(img, None, fx=0.7, fy=0.7))
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-# ===== Step 5 — Webcam: live person counter (press q to quit) =====
+# ===== Step 4 — Webcam: live person counter (press q to quit) =====
 import time
 
-cap = cv2.VideoCapture(0)           # 0 = laptop webcam; or a video path, e.g. "video.mp4"
+cap = cv2.VideoCapture(0)                   # 0 = laptop webcam; or a video path, e.g. "video.mp4"
 prev = time.time()
 
 while cap.isOpened():
@@ -76,17 +66,16 @@ while cap.isOpened():
     if not ok:
         break
 
-    r = model.predict(frame, conf=0.5, verbose=False)[0]
-    frame = r.plot()
+    r = model.predict(frame, verbose=False)[0]
+    persons = draw_boxes(frame, r)          # same function as Step 3
 
-    persons = sum(1 for c in r.boxes.cls if r.names[int(c)] == "person")
     now = time.time()
     fps = 1 / (now - prev)
     prev = now
 
     cv2.putText(frame, f"Persons: {persons}  FPS: {fps:.1f}", (20, 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    cv2.imshow("Step 5 - YOLO webcam", frame)
+    cv2.imshow("Step 4 - YOLO webcam", frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
