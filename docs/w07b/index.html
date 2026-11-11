@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W7B YOLO Python API</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+<style>
+  :root {
+    --bg: #fafaf7; --fg: #1d1d1f; --muted: #5f6368; --card: #ffffff;
+    --border: #e3e3de; --accent: #0b6e4f; --accent-soft: #e4f2ec;
+    --code-bg: #f6f8fa; --warn: #8a5a00; --warn-soft: #fff4dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141414; --fg: #ececec; --muted: #a0a0a0; --card: #1d1d1d;
+      --border: #333; --accent: #4cc398; --accent-soft: #17302a;
+      --code-bg: #0d1117; --warn: #f0c060; --warn-soft: #2e2510;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141414; --fg: #ececec; --muted: #a0a0a0; --card: #1d1d1d;
+    --border: #333; --accent: #4cc398; --accent-soft: #17302a;
+    --code-bg: #0d1117; --warn: #f0c060; --warn-soft: #2e2510;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 16px 80px; }
+  header .course { color: var(--muted); font-size: 14px; letter-spacing: .04em; text-transform: uppercase; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 6px 0 8px; }
+  h2 { font-size: 21px; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 28px; }
+  nav.toc a {
+    font-size: 14px; text-decoration: none; color: var(--accent);
+    border: 1px solid var(--border); background: var(--card);
+    padding: 4px 10px; border-radius: 999px;
+  }
+  section.step {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin: 0 0 18px;
+  }
+  .num {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-weight: 600; font-size: 13px; border-radius: 6px; padding: 1px 8px; margin-bottom: 6px;
+  }
+  .codewrap { position: relative; margin: 12px 0; }
+  pre { margin: 0; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
+  pre code.hljs { background: var(--code-bg); padding: 14px 16px; font-size: 14px; line-height: 1.5; }
+  .copy {
+    position: absolute; top: 8px; right: 8px; cursor: pointer;
+    font: 600 13px system-ui, sans-serif; color: #fff; background: var(--accent);
+    border: 0; border-radius: 6px; padding: 5px 12px;
+  }
+  .copy.done { background: #555; }
+  .note {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0 0; font-size: 15px;
+  }
+  .note.warn { border-color: var(--warn); background: var(--warn-soft); }
+  code:not(.hljs) {
+    font-family: ui-monospace, Consolas, monospace; font-size: 14px;
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px;
+  }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  .download {
+    display: inline-block; margin-top: 8px; padding: 8px 14px; border-radius: 8px;
+    background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+  }
+  footer { color: var(--muted); font-size: 14px; margin-top: 32px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="course">MCTA 4364 Machine Vision · Week 7B</div>
+  <h1>YOLO with the Python API</h1>
+  <p class="lead">Last session we ran YOLO from the command line. Today we drive it from Python:
+  predict, read the results, filter, count, draw our own boxes, and run it live on a webcam.
+  Copy each block, paste it at the bottom of your file, and run it.</p>
+</header>
+
+<nav class="toc">
+  <a href="#setup">0 · Setup</a>
+  <a href="#s1">1 · Predict</a>
+  <a href="#s2">2 · Results</a>
+  <a href="#s3">3 · Filter &amp; count</a>
+  <a href="#s4">4 · Draw</a>
+  <a href="#s5">5 · Webcam</a>
+  <a href="#ex">Exercises</a>
+</nav>
+
+<section class="step" id="setup">
+  <span class="num">Step 0</span>
+  <h2>Setup in VS Code</h2>
+  <ol>
+    <li>In VS Code, install the extensions <strong>Python</strong> and <strong>Jupyter</strong> (Microsoft).</li>
+    <li>Create a folder, e.g. <code>mv_week7</code>, and open it with <em>File → Open Folder</em>.</li>
+    <li>Open a terminal (<em>Terminal → New Terminal</em>) and install the packages:</li>
+  </ol>
+  <div class="codewrap"><pre><code class="language-bash">pip install ultralytics matplotlib ipykernel</code></pre></div>
+  <ol start="4">
+    <li>Create a new file <code>w07b.py</code>.</li>
+    <li>Every block below starts with <code># %%</code>. That line makes a <strong>cell</strong>.
+      Click inside a cell and press <strong>Shift + Enter</strong> to run only that cell in the Interactive window.</li>
+  </ol>
+  <p class="note">If VS Code asks to install <code>ipykernel</code> or to select a kernel, accept it and choose the Python you installed
+  <code>ultralytics</code> into.</p>
+</section>
+
+<section class="step" id="s1">
+  <span class="num">Step 1</span>
+  <h2>Load a model and predict on one image</h2>
+  <div class="codewrap"><pre><code class="language-python"># %% Step 1 — Load a model and predict on one image
+from ultralytics import YOLO
+import cv2
+import matplotlib.pyplot as plt
+
+model = YOLO("yolo26n.pt")          # downloads the weights the first time
+results = model("https://ultralytics.com/images/bus.jpg")
+
+r = results[0]                      # one image -> one Results object
+annotated = r.plot()                # numpy image (BGR) with boxes drawn
+
+plt.figure(figsize=(6, 8))
+plt.imshow(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB))
+plt.axis("off")
+plt.show()</code></pre></div>
+  <p class="note">CLI vs Python: <code>yolo predict model=yolo26n.pt source=bus.jpg</code> is the same as
+  <code>model("bus.jpg")</code>. The difference: in Python the result comes back as an object you can use.
+  <code>model(...)</code> always returns a <strong>list</strong>, one item per image.</p>
+</section>
+
+<section class="step" id="s2">
+  <span class="num">Step 2</span>
+  <h2>Look inside the Results object</h2>
+  <div class="codewrap"><pre><code class="language-python"># %% Step 2 — Look inside the Results object
+print("Image size (h, w):", r.orig_shape)
+print("Number of objects:", len(r.boxes))
+print("Class names:", r.names)
+
+for box in r.boxes:
+    cls_id = int(box.cls)
+    name = r.names[cls_id]
+    conf = float(box.conf)
+    x1, y1, x2, y2 = box.xyxy[0].tolist()
+    print(f"{name:10s} conf={conf:.2f}  box=({x1:.0f}, {y1:.0f}, {x2:.0f}, {y2:.0f})")</code></pre></div>
+  <p class="note">Each box has three things: <code>xyxy</code> (top-left and bottom-right corners in pixels),
+  <code>conf</code> (confidence, 0–1) and <code>cls</code> (class number). <code>r.names</code> maps the number to a name.
+  Expected for bus.jpg: 1 bus and 4 persons.</p>
+</section>
+
+<section class="step" id="s3">
+  <span class="num">Step 3</span>
+  <h2>Filter and count</h2>
+  <div class="codewrap"><pre><code class="language-python"># %% Step 3 — Filter and count
+from collections import Counter
+
+# (a) Let YOLO filter for you: only persons (class 0), confidence &gt;= 0.5
+results = model.predict("https://ultralytics.com/images/bus.jpg",
+                        conf=0.5, classes=[0], verbose=False)
+print("Persons found:", len(results[0].boxes))
+
+# (b) Filter yourself, then count every class
+results = model("https://ultralytics.com/images/bus.jpg", verbose=False)
+r = results[0]
+names = [r.names[int(c)] for c, s in zip(r.boxes.cls, r.boxes.conf) if s &gt;= 0.5]
+print(Counter(names))</code></pre></div>
+  <p class="note">Change <code>conf=0.5</code> to <code>0.8</code> and run again. How many persons now? Why?</p>
+</section>
+
+<section class="step" id="s4">
+  <span class="num">Step 4</span>
+  <h2>Draw your own boxes with OpenCV</h2>
+  <div class="codewrap"><pre><code class="language-python"># %% Step 4 — Draw your own boxes with OpenCV
+img = r.orig_img.copy()             # original image (BGR), no boxes yet
+count = 0
+
+for box in r.boxes:
+    if float(box.conf) &lt; 0.5:
+        continue
+    x1, y1, x2, y2 = map(int, box.xyxy[0])
+    name = r.names[int(box.cls)]
+    if name == "person":
+        count += 1
+    color = (0, 255, 0) if name == "person" else (255, 0, 0)
+    cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
+    cv2.putText(img, f"{name} {float(box.conf):.2f}", (x1, y1 - 8),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+
+cv2.putText(img, f"Persons: {count}", (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
+
+plt.figure(figsize=(6, 8))
+plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+plt.axis("off")
+plt.show()</code></pre></div>
+  <p class="note">Same OpenCV drawing functions as in the earlier weeks. Colours are <strong>BGR</strong>:
+  <code>(0, 255, 0)</code> is green, <code>(255, 0, 0)</code> is blue, <code>(0, 0, 255)</code> is red.</p>
+</section>
+
+<section class="step" id="s5">
+  <span class="num">Step 5</span>
+  <h2>Webcam: live person counter</h2>
+  <div class="codewrap"><pre><code class="language-python"># %% Step 5 — Webcam: live person counter (press q to quit)
+import time
+
+cap = cv2.VideoCapture(0)           # 0 = laptop webcam; or a video path, e.g. "video.mp4"
+prev = time.time()
+
+while cap.isOpened():
+    ok, frame = cap.read()
+    if not ok:
+        break
+
+    r = model(frame, conf=0.5, verbose=False)[0]
+    frame = r.plot()
+
+    persons = sum(1 for c in r.boxes.cls if r.names[int(c)] == "person")
+    now = time.time()
+    fps = 1 / (now - prev)
+    prev = now
+
+    cv2.putText(frame, f"Persons: {persons}  FPS: {fps:.1f}", (20, 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    cv2.imshow("YOLO webcam", frame)
+
+    if cv2.waitKey(1) &amp; 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()</code></pre></div>
+  <p class="note">Click on the video window, then press <strong>q</strong> to stop.</p>
+  <p class="note warn">If the window freezes or does not appear: paste Step 1 (first 4 lines) and Step 5 into a new file
+  <code>webcam.py</code> and run it with the ▶ <em>Run Python File</em> button instead of Shift + Enter.
+  No webcam? Put a video file path instead of <code>0</code>.</p>
+</section>
+
+<section class="step" id="ex">
+  <span class="num">Exercises</span>
+  <h2>Your turn (no copy-paste)</h2>
+  <ol>
+    <li><strong>Phone detector.</strong> Change Step 5 so it counts <code>cell phone</code> instead of persons.
+      Hint: look for the class number in <code>r.names</code>.</li>
+    <li><strong>Crowd alarm.</strong> If more than 2 persons are in front of the webcam, draw a red banner
+      with the text <code>CROWDED</code> at the top of the frame (<code>cv2.rectangle</code> with thickness <code>-1</code>).</li>
+    <li><strong>Snapshot.</strong> Press <strong>s</strong> to save the current frame as <code>snap.jpg</code>
+      (<code>cv2.imwrite</code>).</li>
+    <li><strong>Challenge — same API, other tasks.</strong> Replace the model with <code>yolo26n-seg.pt</code> or
+      <code>yolo26n-pose.pt</code>. What do you find in <code>r.masks</code> and <code>r.keypoints</code>?</li>
+  </ol>
+  <p class="note">Before you leave: post a screenshot of your webcam counter (or exercise) on the class Padlet.</p>
+  <a class="download" href="w07b_yolo_python.py" download>Download the full checkpoint file (.py)</a>
+</section>
+
+<footer>
+  Next session (after the mid-sem break): training YOLO on a custom dataset.
+  Homework: run Step 1 on photos from your own project.
+</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  hljs.highlightAll();
+  document.querySelectorAll(".codewrap").forEach(function (wrap) {
+    var btn = document.createElement("button");
+    btn.className = "copy";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", function () {
+      var text = wrap.querySelector("code").innerText;
+      var done = function () {
+        btn.textContent = "Copied ✓"; btn.classList.add("done");
+        setTimeout(function () { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand("copy"); document.body.removeChild(ta); done();
+      }
+    });
+    wrap.appendChild(btn);
+  });
+</script>
+</body>
+</html>

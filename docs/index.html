@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCTA 4364 Code-Along</title>
+<style>
+  :root { --bg: #fafaf7; --fg: #1d1d1f; --muted: #5f6368; --card: #fff; --border: #e3e3de; --accent: #0b6e4f; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #141414; --fg: #ececec; --muted: #a0a0a0; --card: #1d1d1d; --border: #333; --accent: #4cc398; }
+  }
+  :root[data-theme="dark"] { --bg: #141414; --fg: #ececec; --muted: #a0a0a0; --card: #1d1d1d; --border: #333; --accent: #4cc398; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 16px; }
+  .course { color: var(--muted); font-size: 14px; text-transform: uppercase; letter-spacing: .04em; }
+  h1 { margin: 6px 0 24px; font-size: 28px; }
+  a.session { display: block; text-decoration: none; color: var(--fg); background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  a.session:hover { border-color: var(--accent); }
+  .tag { color: var(--accent); font-weight: 600; font-size: 14px; }
+  .desc { color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="course">MCTA 4364 Machine Vision · Semester 1, 2026/27</div>
+  <h1>Code-along sessions</h1>
+  <a class="session" href="w07b/">
+    <div class="tag">Week 7B</div>
+    <strong>YOLO with the Python API</strong>
+    <div class="desc">Predict, read results, filter and count, draw boxes, live webcam counter.</div>
+  </a>
+</main>
+</body>
+</html>
