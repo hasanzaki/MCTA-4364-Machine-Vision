@@ -100,47 +100,47 @@
   <span class="num">Step 0</span>
   <h2>Setup in VS Code</h2>
   <ol>
-    <li>In VS Code, install the extensions <strong>Python</strong> and <strong>Jupyter</strong> (Microsoft).</li>
+    <li>In VS Code, install the <strong>Python</strong> extension (Microsoft).</li>
     <li>Create a folder, e.g. <code>mv_week7</code>, and open it with <em>File → Open Folder</em>.</li>
     <li>Open a terminal (<em>Terminal → New Terminal</em>) and install the packages:</li>
   </ol>
-  <div class="codewrap"><pre><code class="language-bash">pip install ultralytics matplotlib ipykernel</code></pre></div>
+  <div class="codewrap"><pre><code class="language-bash">pip install ultralytics</code></pre></div>
   <ol start="4">
     <li>Create a new file <code>w07b.py</code>.</li>
-    <li>Every block below starts with <code># %%</code>. That line makes a <strong>cell</strong>.
-      Click inside a cell and press <strong>Shift + Enter</strong> to run only that cell in the Interactive window.</li>
+    <li>For each step: copy the block, paste it at the <strong>bottom</strong> of <code>w07b.py</code>, then press
+      ▶ <strong>Run Python File</strong> (top-right of the editor).</li>
+    <li>When an image window opens, click on it and press <strong>any key</strong> to close it and let the program continue.</li>
   </ol>
-  <p class="note">If VS Code asks to install <code>ipykernel</code> or to select a kernel, accept it and choose the Python you installed
-  <code>ultralytics</code> into.</p>
+  <p class="note">The whole file runs from the top every time, so earlier steps run again. That is normal.
+  Make sure the bottom-right of VS Code shows the Python where you installed <code>ultralytics</code>.</p>
 </section>
 
 <section class="step" id="s1">
   <span class="num">Step 1</span>
   <h2>Load a model and predict on one image</h2>
-  <div class="codewrap"><pre><code class="language-python"># %% Step 1 — Load a model and predict on one image
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 1 — Load a model and predict on one image =====
 from ultralytics import YOLO
 import cv2
-import matplotlib.pyplot as plt
 
 model = YOLO("yolo26n.pt")          # downloads the weights the first time
 results = model("https://ultralytics.com/images/bus.jpg")
 
-r = results[0]                      # one image -> one Results object
+r = results[0]                      # one image -&gt; one Results object
 annotated = r.plot()                # numpy image (BGR) with boxes drawn
 
-plt.figure(figsize=(6, 8))
-plt.imshow(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB))
-plt.axis("off")
-plt.show()</code></pre></div>
+cv2.imshow("Step 1 - YOLO result", cv2.resize(annotated, None, fx=0.7, fy=0.7))
+cv2.waitKey(0)                      # wait until a key is pressed
+cv2.destroyAllWindows()</code></pre></div>
   <p class="note">CLI vs Python: <code>yolo predict model=yolo26n.pt source=bus.jpg</code> is the same as
   <code>model("bus.jpg")</code>. The difference: in Python the result comes back as an object you can use.
-  <code>model(...)</code> always returns a <strong>list</strong>, one item per image.</p>
+  <code>model(...)</code> always returns a <strong>list</strong>, one item per image.
+  The image is shrunk to 70% with <code>cv2.resize</code> so it fits on a laptop screen.</p>
 </section>
 
 <section class="step" id="s2">
   <span class="num">Step 2</span>
   <h2>Look inside the Results object</h2>
-  <div class="codewrap"><pre><code class="language-python"># %% Step 2 — Look inside the Results object
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 2 — Look inside the Results object =====
 print("Image size (h, w):", r.orig_shape)
 print("Number of objects:", len(r.boxes))
 print("Class names:", r.names)
@@ -159,7 +159,7 @@ for box in r.boxes:
 <section class="step" id="s3">
   <span class="num">Step 3</span>
   <h2>Filter and count</h2>
-  <div class="codewrap"><pre><code class="language-python"># %% Step 3 — Filter and count
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 3 — Filter and count =====
 from collections import Counter
 
 # (a) Let YOLO filter for you: only persons (class 0), confidence &gt;= 0.5
@@ -178,7 +178,7 @@ print(Counter(names))</code></pre></div>
 <section class="step" id="s4">
   <span class="num">Step 4</span>
   <h2>Draw your own boxes with OpenCV</h2>
-  <div class="codewrap"><pre><code class="language-python"># %% Step 4 — Draw your own boxes with OpenCV
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 4 — Draw your own boxes with OpenCV =====
 img = r.orig_img.copy()             # original image (BGR), no boxes yet
 count = 0
 
@@ -197,10 +197,9 @@ for box in r.boxes:
 cv2.putText(img, f"Persons: {count}", (20, 50),
             cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
-plt.figure(figsize=(6, 8))
-plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-plt.axis("off")
-plt.show()</code></pre></div>
+cv2.imshow("Step 4 - My own boxes", cv2.resize(img, None, fx=0.7, fy=0.7))
+cv2.waitKey(0)
+cv2.destroyAllWindows()</code></pre></div>
   <p class="note">Same OpenCV drawing functions as in the earlier weeks. Colours are <strong>BGR</strong>:
   <code>(0, 255, 0)</code> is green, <code>(255, 0, 0)</code> is blue, <code>(0, 0, 255)</code> is red.</p>
 </section>
@@ -208,7 +207,7 @@ plt.show()</code></pre></div>
 <section class="step" id="s5">
   <span class="num">Step 5</span>
   <h2>Webcam: live person counter</h2>
-  <div class="codewrap"><pre><code class="language-python"># %% Step 5 — Webcam: live person counter (press q to quit)
+  <div class="codewrap"><pre><code class="language-python"># ===== Step 5 — Webcam: live person counter (press q to quit) =====
 import time
 
 cap = cv2.VideoCapture(0)           # 0 = laptop webcam; or a video path, e.g. "video.mp4"
@@ -229,7 +228,7 @@ while cap.isOpened():
 
     cv2.putText(frame, f"Persons: {persons}  FPS: {fps:.1f}", (20, 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    cv2.imshow("YOLO webcam", frame)
+    cv2.imshow("Step 5 - YOLO webcam", frame)
 
     if cv2.waitKey(1) &amp; 0xFF == ord("q"):
         break
@@ -237,9 +236,8 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()</code></pre></div>
   <p class="note">Click on the video window, then press <strong>q</strong> to stop.</p>
-  <p class="note warn">If the window freezes or does not appear: paste Step 1 (first 4 lines) and Step 5 into a new file
-  <code>webcam.py</code> and run it with the ▶ <em>Run Python File</em> button instead of Shift + Enter.
-  No webcam? Put a video file path instead of <code>0</code>.</p>
+  <p class="note warn">Tired of pressing keys for Steps 1 and 4 every run? Put <code>#</code> in front of their
+  <code>cv2.imshow</code> / <code>cv2.waitKey</code> lines. No webcam? Put a video file path instead of <code>0</code>.</p>
 </section>
 
 <section class="step" id="ex">
